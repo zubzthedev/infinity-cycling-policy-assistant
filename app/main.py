@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager
 from pathlib import Path
 
 from fastapi import Depends, FastAPI, Request
@@ -9,6 +11,7 @@ from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
+from app import policies
 from app.auth import AuthenticatedUser, get_current_user, require_admin
 from app.config import get_settings
 
@@ -16,16 +19,34 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 settings = get_settings()
 
-app = FastAPI(title="Ask Oufy")
+
+def _resolve_dir(configured: Path) -> Path:
+    """Resolve a configured directory against the repo root if it's relative."""
+    return configured if configured.is_absolute() else BASE_DIR / configured
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI) -> AsyncIterator[None]:
+    policies.reload_store(_resolve_dir(settings.policy_dir))
+    yield
+
+
+app = FastAPI(title="Ask Oufy", lifespan=lifespan)
 
 app.mount("/static", StaticFiles(directory=BASE_DIR / "static"), name="static")
 templates = Jinja2Templates(directory=BASE_DIR / "templates")
 
 
 @app.get("/healthz")
-def healthz() -> dict[str, str]:
+def healthz() -> dict[str, object]:
     """Liveness/readiness probe used by Cloud Run and local checks."""
-    return {"status": "ok", "environment": settings.environment}
+    store = policies.get_store()
+    return {
+        "status": "ok",
+        "environment": settings.environment,
+        "policies_loaded": len(store),
+        "policy_load_errors": len(store.errors),
+    }
 
 
 @app.get("/login", response_class=HTMLResponse)
