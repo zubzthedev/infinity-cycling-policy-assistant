@@ -1,0 +1,666 @@
+# Build Specification — Ask Oufy
+
+## Overview
+
+You are a senior software architect and full-stack engineer.
+
+Build a complete production-quality application called **Ask Oufy**.
+
+This is an internal AI-powered policy assistant for the **Infinity Cycling Club Executive Committee (EXCO)**.
+
+The objective is to provide accurate, traceable answers based **only** on the club's official policy documents.
+
+This is **not** a chatbot.
+
+This is a governance and policy assistant.
+
+Every design decision should prioritise:
+
+* simplicity
+* maintainability
+* transparency
+* security
+* low operating cost
+* minimal infrastructure
+* production quality
+
+Do **not** over-engineer the solution.
+
+---
+
+# Primary Objective
+
+Ask Oufy allows authorised EXCO members to ask governance and disciplinary questions such as:
+
+* Can a member be suspended?
+* A rider verbally abused another rider. What process should EXCO follow?
+* Can an EXCO member vote where they have a conflict of interest?
+* Which policy governs marshal duties?
+* How should complaints be handled?
+* Can membership be terminated?
+
+The application must answer using **only** the supplied policy documents.
+
+If no policy exists, the application must explicitly state that the club currently has no documented policy covering the situation.
+
+It must never invent policy.
+
+It must never guess.
+
+It must never provide legal advice.
+
+---
+
+# Technology Stack
+
+Use only the following stack.
+
+Backend
+
+* Python 3.12+
+* FastAPI
+
+Frontend
+
+* HTML
+* CSS
+* Vanilla JavaScript
+
+Do NOT use:
+
+* React
+* Next.js
+* Angular
+* Vue
+
+Serve the frontend directly from FastAPI.
+
+---
+
+# Hosting
+
+Entire application must be deployable on Google Cloud.
+
+Use:
+
+* Google Cloud Run
+* Docker
+
+The application should scale to zero when idle.
+
+Optimise for remaining within Google's free-tier limits for a small committee application.
+
+---
+
+# AI Model
+
+Use Google's Gemini API.
+
+Use the latest stable Flash model (Gemini 2.5 Flash or newer).
+
+Store API credentials securely using environment variables or Google Secret Manager.
+
+Never expose credentials to the browser.
+
+---
+
+# Authentication
+
+Use Firebase Authentication.
+
+Requirements
+
+* Google Sign-In
+* Invite-only
+* Only authorised email addresses may access the application
+
+Create a simple authorisation layer that checks the authenticated user's email address against an allow-list.
+
+---
+
+# Repository Structure
+
+Design a clean repository similar to:
+
+```text
+ask-oufy/
+
+    app/
+        main.py
+        auth.py
+        gemini.py
+        policies.py
+        prompts.py
+        config.py
+        logging.py
+
+    policies/
+
+    prompts/
+
+    templates/
+
+    static/
+        css/
+        js/
+        images/
+
+    tests/
+
+    Dockerfile
+
+    requirements.txt
+
+    README.md
+```
+
+Keep the architecture modular and easy to understand.
+
+---
+
+# Policies
+
+Policies are stored as Markdown.
+
+Example:
+
+```text
+policies/
+
+constitution.md
+
+disciplinary.md
+
+membership.md
+
+racing.md
+
+code_of_conduct.md
+```
+
+On application startup:
+
+Load every Markdown document.
+
+Cache them in memory.
+
+Do not reload on every request.
+
+---
+
+# Prompt Framework
+
+Store prompts separately.
+
+Example:
+
+```text
+prompts/
+
+system.md
+
+response_rules.md
+
+examples.md
+```
+
+Every request should construct:
+
+System Prompt
+
+*
+
+Response Rules
+
+*
+
+Examples
+
+*
+
+All Markdown Policy Documents
+
+*
+
+User Question
+
+No vector database.
+
+No embeddings.
+
+No Pinecone.
+
+No Chroma.
+
+No LangChain.
+
+No LlamaIndex.
+
+No Retrieval-Augmented Generation (RAG).
+
+The expected policy library is small enough to fit comfortably within Gemini's context window.
+
+---
+
+# Behaviour Rules
+
+Ask Oufy must:
+
+* answer only from supplied policies
+* cite policies used
+* explain reasoning
+* recommend documented process
+* identify all applicable policies
+* state when multiple policies apply
+* refuse to invent policy
+* state when no policy exists
+
+Never use external knowledge unless it has been added to the policy library.
+
+---
+
+# Response Format
+
+Every response should use this structure.
+
+Applicable Policies
+
+Summary
+
+Reasoning
+
+Recommended Process
+
+Policy References
+
+Example:
+
+Applicable Policies
+
+• Constitution
+
+• Disciplinary Policy
+
+Summary
+
+...
+
+Reasoning
+
+...
+
+Recommended Process
+
+...
+
+Policy References
+
+Constitution Section 6.2
+
+Disciplinary Policy Section 3.4
+
+If no policy exists:
+
+"No current club policy appears to address this scenario.
+
+Ask Oufy cannot infer or create club policy.
+
+This matter should be referred to the Executive Committee for consideration."
+
+---
+
+# Branding
+
+Application name:
+
+Ask Oufy
+
+Subtitle:
+
+Infinity Cycling Club Policy Assistant
+
+Description:
+
+Ask Oufy is an AI-powered policy assistant that helps the Executive Committee interpret and apply the club's official governance documents.
+
+Never call the application:
+
+* chatbot
+* AI assistant
+* Gemini
+
+The identity is always:
+
+Ask Oufy
+
+---
+
+# User Interface
+
+Create a professional governance application.
+
+Avoid typical chatbot styling.
+
+Landing page:
+
+Header
+
+Ask Oufy
+
+Subtitle
+
+Infinity Cycling Club Policy Assistant
+
+Short description
+
+Need guidance on a governance or disciplinary matter?
+
+Ask Oufy reviews the official club policies and provides structured answers with policy references.
+
+Question input
+
+Placeholder
+
+"Ask Oufy a policy question..."
+
+Primary button
+
+Ask Oufy
+
+Below the input display example questions:
+
+* Can a rider be suspended for abusive language?
+* What is the disciplinary process?
+* Can an EXCO member vote where there is a conflict of interest?
+* A rider refuses marshal duty.
+* How should complaints be handled?
+* Which policy governs race conduct?
+
+Responses should appear as professional cards rather than chat bubbles.
+
+---
+
+# Policy Library
+
+Create a dedicated Policy Library page.
+
+Requirements
+
+Display every Markdown document.
+
+Left navigation.
+
+Markdown rendering.
+
+Tables.
+
+Lists.
+
+Headings.
+
+Anchor links.
+
+Search.
+
+Clickable policy references from Ask Oufy responses should open the referenced document and, where possible, scroll directly to the cited section.
+
+---
+
+# Administration
+
+Create a simple admin page.
+
+Capabilities
+
+Upload new Markdown policies.
+
+Replace policies.
+
+Delete policies.
+
+View loaded policies.
+
+View application status.
+
+Reload policies without restarting the application.
+
+Restrict access to administrators.
+
+---
+
+# Logging
+
+Log:
+
+Timestamp
+
+Authenticated user
+
+Question
+
+Response time
+
+Policies referenced
+
+Do not log API keys.
+
+Do not log authentication tokens.
+
+Support optional response logging for auditing.
+
+---
+
+# Security
+
+Implement:
+
+HTTPS
+
+Firebase Authentication
+
+CSRF protection where applicable
+
+Input validation
+
+Output escaping
+
+Rate limiting
+
+Secure HTTP headers
+
+Environment variable management
+
+Secret Manager support
+
+---
+
+# Configuration
+
+Create a central configuration module.
+
+Include:
+
+Gemini model
+
+Policy directory
+
+Prompt directory
+
+Logging options
+
+Authorised users
+
+Administrator users
+
+Feature flags
+
+---
+
+# Error Handling
+
+Implement graceful handling for:
+
+Missing policy files
+
+Gemini failures
+
+Authentication failures
+
+Rate limiting
+
+Malformed Markdown
+
+Configuration errors
+
+Cloud Run startup failures
+
+---
+
+# Testing
+
+Provide:
+
+Unit tests
+
+Policy loader tests
+
+Authentication tests
+
+Prompt builder tests
+
+Integration tests
+
+---
+
+# Docker
+
+Provide:
+
+Dockerfile
+
+.dockerignore
+
+Local development instructions
+
+Cloud Run deployment instructions
+
+---
+
+# Documentation
+
+Produce a comprehensive README.
+
+Include:
+
+Architecture
+
+Installation
+
+Local development
+
+Environment variables
+
+Firebase configuration
+
+Google Cloud configuration
+
+Gemini configuration
+
+Docker
+
+Cloud Run deployment
+
+Adding policies
+
+Managing prompts
+
+Administration
+
+Troubleshooting
+
+Future enhancements
+
+---
+
+# Code Quality
+
+Requirements:
+
+Strong typing where practical
+
+Pythonic
+
+Fully documented
+
+Clean architecture
+
+Minimal dependencies
+
+Readable code
+
+Production quality
+
+No unnecessary abstractions
+
+No unnecessary frameworks
+
+Follow SOLID principles where appropriate without adding needless complexity.
+
+---
+
+# Future Expansion
+
+Design the application so future knowledge sources can be added easily, including:
+
+Meeting minutes
+
+AGM resolutions
+
+Committee decisions
+
+Historical disciplinary cases
+
+Cycling South Africa regulations
+
+UCI regulations
+
+Insurance documentation
+
+These should plug into the same architecture without requiring a major redesign.
+
+Do not implement RAG at this stage.
+
+---
+
+# Development Process
+
+Do **not** generate the entire application in one response.
+
+Work as if this were a real production software project.
+
+Break the work into logical milestones.
+
+Suggested milestones:
+
+1. Project scaffolding
+2. Authentication
+3. Policy loading engine
+4. Prompt framework
+5. Gemini integration
+6. Ask Oufy interface
+7. Policy Library
+8. Administration
+9. Logging and auditing
+10. Testing
+11. Dockerisation
+12. Cloud Run deployment
+13. Documentation
+
+At the end of each milestone:
+
+* Explain what was implemented.
+* Explain the architecture.
+* Explain any trade-offs.
+* Wait for approval before proceeding.
+
+The final result should be a clean, maintainable, production-ready application that could realistically be deployed and maintained by a small technical team with minimal ongoing cost.
