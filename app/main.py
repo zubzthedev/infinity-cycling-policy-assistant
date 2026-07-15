@@ -11,7 +11,7 @@ from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
-from app import policies
+from app import policies, prompts
 from app.auth import AuthenticatedUser, get_current_user, require_admin
 from app.config import get_settings
 
@@ -28,6 +28,7 @@ def _resolve_dir(configured: Path) -> Path:
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     policies.reload_store(_resolve_dir(settings.policy_dir))
+    prompts.reload_prompts(_resolve_dir(settings.prompt_dir))
     yield
 
 
@@ -41,11 +42,13 @@ templates = Jinja2Templates(directory=BASE_DIR / "templates")
 def healthz() -> dict[str, object]:
     """Liveness/readiness probe used by Cloud Run and local checks."""
     store = policies.get_store()
+    prompt_set = prompts.get_prompts()
     return {
         "status": "ok",
         "environment": settings.environment,
         "policies_loaded": len(store),
         "policy_load_errors": len(store.errors),
+        "prompts_loaded": bool(prompt_set.system),
     }
 
 
