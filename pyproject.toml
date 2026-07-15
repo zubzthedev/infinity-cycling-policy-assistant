@@ -4,6 +4,10 @@ target-version = "py312"
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B"]
+# B008: FastAPI's `Depends(...)` in a default argument is the idiomatic
+# dependency-injection pattern, not the mutable-default-argument bug this
+# rule targets.
+ignore = ["B008"]
 
 [tool.mypy]
 python_version = "3.12"
@@ -15,3 +19,4 @@ warn_unused_ignores = true
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"

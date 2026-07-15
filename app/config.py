@@ -20,8 +20,12 @@ class Settings(BaseSettings):
     gemini_model: str = "gemini-2.5-flash"
     gemini_timeout_seconds: float = 30.0
 
-    # Firebase
+    # Firebase (client-side web config is public by design; access control is
+    # enforced server-side via verify_id_token + the allow-lists below)
     firebase_project_id: str = ""
+    firebase_api_key: str = ""
+    firebase_auth_domain: str = ""
+    firebase_app_id: str = ""
     google_application_credentials: str | None = None
 
     # Policies / prompts

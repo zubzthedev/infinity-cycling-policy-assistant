@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Sign in — Ask Oufy</title>
+  <link rel="stylesheet" href="/static/css/main.css" />
+</head>
+<body class="login-page">
+  <main class="login-card">
+    <h1>Ask Oufy</h1>
+    <p class="subtitle">Infinity Cycling Club Policy Assistant</p>
+    <p class="login-description">
+      Sign in with your club Google account to continue. Access is limited to
+      invited Executive Committee members.
+    </p>
+    <button id="google-sign-in" type="button" class="primary-button">
+      Sign in with Google
+    </button>
+    <p id="login-error" class="login-error" role="alert" hidden></p>
+  </main>
+
+  <script>
+    window.__FIREBASE_CONFIG__ = {{ firebase_config | tojson }};
+  </script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+  <script src="/static/js/firebase-init.js"></script>
+  <script src="/static/js/auth.js"></script>
+</body>
+</html>
