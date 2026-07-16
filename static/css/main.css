@@ -79,3 +79,193 @@ body {
   color: var(--color-error);
   font-size: 0.9rem;
 }
+
+/* --- Site shell (header + nav), used by pages built on base.html --- */
+
+.site-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 2rem;
+  background: var(--color-card);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.brand {
+  display: flex;
+  flex-direction: column;
+  text-decoration: none;
+  color: var(--color-primary);
+  line-height: 1.2;
+}
+
+.brand-name {
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.brand-subtitle {
+  font-size: 0.8rem;
+  color: var(--color-subtitle);
+  font-weight: 600;
+}
+
+.site-nav {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+}
+
+.nav-link-button {
+  background: none;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  padding: 0.4rem 0.9rem;
+  color: var(--color-text);
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.nav-link-button:hover {
+  background: var(--color-bg);
+}
+
+.site-main {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem 4rem;
+}
+
+/* --- Ask Oufy landing page --- */
+
+.ask-intro {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.ask-intro h1 {
+  margin: 0 0 0.25rem;
+  font-size: 2rem;
+  color: var(--color-primary);
+}
+
+.ask-description {
+  color: var(--color-subtitle);
+  font-size: 1rem;
+  line-height: 1.6;
+  max-width: 640px;
+  margin: 0.75rem auto 0;
+}
+
+.ask-form-section {
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 1.75rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+#ask-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+#question-input {
+  font-family: inherit;
+  font-size: 1rem;
+  padding: 0.75rem;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  resize: vertical;
+}
+
+.ask-form-section .primary-button {
+  width: auto;
+  align-self: flex-end;
+  padding: 0.65rem 1.75rem;
+}
+
+.example-questions {
+  margin-top: 1.5rem;
+}
+
+.example-questions-label {
+  margin: 0 0 0.5rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-subtitle);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.example-questions-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.example-question {
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  padding: 0.4rem 0.9rem;
+  font-size: 0.85rem;
+  color: var(--color-text);
+  cursor: pointer;
+  text-align: left;
+}
+
+.example-question:hover {
+  background: #eceff2;
+}
+
+.ask-status {
+  margin: 1.5rem 0 0;
+  padding: 0.75rem 1rem;
+  border-radius: 6px;
+  background: var(--color-bg);
+  color: var(--color-subtitle);
+  font-size: 0.9rem;
+}
+
+.ask-status-error {
+  background: #fbeae9;
+  color: var(--color-error);
+}
+
+.ask-results {
+  margin-top: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+/* A professional governance "card", deliberately not a chat bubble. */
+.response-card {
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-left: 4px solid var(--color-primary);
+  border-radius: 8px;
+  padding: 1.5rem 1.75rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+  line-height: 1.6;
+}
+
+.response-card h2 {
+  font-size: 1.05rem;
+  color: var(--color-primary);
+  margin: 1.25rem 0 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.response-card h2:first-child {
+  margin-top: 0;
+}
+
+.response-card ul,
+.response-card ol {
+  margin: 0.25rem 0 0.75rem;
+  padding-left: 1.5rem;
+}

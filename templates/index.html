@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+
+{% block title %}Ask Oufy{% endblock %}
+{% block body_class %}ask-page{% endblock %}
+
+{% block nav %}
+<button id="sign-out" type="button" class="nav-link-button">Sign out</button>
+{% endblock %}
+
+{% block content %}
+<main class="ask-main">
+  <section class="ask-intro">
+    <h1>Ask Oufy</h1>
+    <p class="subtitle">Infinity Cycling Club Policy Assistant</p>
+    <p class="ask-description">
+      Need guidance on a governance or disciplinary matter? Ask Oufy reviews
+      the official club policies and provides structured answers with
+      policy references.
+    </p>
+  </section>
+
+  <section class="ask-form-section">
+    <form id="ask-form">
+      <textarea
+        id="question-input"
+        name="question"
+        placeholder="Ask Oufy a policy question..."
+        rows="3"
+        maxlength="2000"
+        required
+      ></textarea>
+      <button type="submit" class="primary-button" id="ask-submit">Ask Oufy</button>
+    </form>
+
+    <div class="example-questions">
+      <p class="example-questions-label">Example questions</p>
+      <div class="example-questions-list">
+        <button type="button" class="example-question">Can a rider be suspended for abusive language?</button>
+        <button type="button" class="example-question">What is the disciplinary process?</button>
+        <button type="button" class="example-question">Can an EXCO member vote where there is a conflict of interest?</button>
+        <button type="button" class="example-question">A rider refuses marshal duty.</button>
+        <button type="button" class="example-question">How should complaints be handled?</button>
+        <button type="button" class="example-question">Which policy governs race conduct?</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="ask-status" class="ask-status" hidden></section>
+
+  <section id="ask-results" class="ask-results"></section>
+</main>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="/static/js/ask.js"></script>
+{% endblock %}

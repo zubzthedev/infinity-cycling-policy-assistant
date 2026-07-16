@@ -14,6 +14,7 @@ from fastapi.templating import Jinja2Templates
 from app import policies, prompts
 from app.auth import AuthenticatedUser, get_current_user, require_admin
 from app.config import get_settings
+from app.routers import ask
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -36,6 +37,16 @@ app = FastAPI(title="Ask Oufy", lifespan=lifespan)
 
 app.mount("/static", StaticFiles(directory=BASE_DIR / "static"), name="static")
 templates = Jinja2Templates(directory=BASE_DIR / "templates")
+app.include_router(ask.router)
+
+
+def _firebase_config() -> dict[str, str]:
+    return {
+        "apiKey": settings.firebase_api_key,
+        "authDomain": settings.firebase_auth_domain,
+        "projectId": settings.firebase_project_id,
+        "appId": settings.firebase_app_id,
+    }
 
 
 @app.get("/healthz")
@@ -52,17 +63,19 @@ def healthz() -> dict[str, object]:
     }
 
 
+@app.get("/", response_class=HTMLResponse)
+def index_page(request: Request) -> HTMLResponse:
+    """Serve the Ask Oufy landing page (auth is enforced by /api/ask, not here)."""
+    return templates.TemplateResponse(
+        request, "index.html", {"firebase_config": _firebase_config()}
+    )
+
+
 @app.get("/login", response_class=HTMLResponse)
 def login_page(request: Request) -> HTMLResponse:
     """Serve the Google Sign-In page with Firebase's public web config."""
-    firebase_config = {
-        "apiKey": settings.firebase_api_key,
-        "authDomain": settings.firebase_auth_domain,
-        "projectId": settings.firebase_project_id,
-        "appId": settings.firebase_app_id,
-    }
     return templates.TemplateResponse(
-        request, "login.html", {"firebase_config": firebase_config}
+        request, "login.html", {"firebase_config": _firebase_config()}
     )
 
 

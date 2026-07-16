@@ -1,0 +1,21 @@
+"""Shared Pydantic request/response models for Ask Oufy's API."""
+
+from __future__ import annotations
+
+from pydantic import BaseModel, Field
+
+
+class AskRequest(BaseModel):
+    question: str = Field(min_length=1, max_length=2000)
+
+
+class PolicyReferenceModel(BaseModel):
+    text: str
+    policy_slug: str | None = None
+    section_slug: str | None = None
+
+
+class AskResponse(BaseModel):
+    answer_html: str
+    answer_markdown: str
+    policy_references: list[PolicyReferenceModel]

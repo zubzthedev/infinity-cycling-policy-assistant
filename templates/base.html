@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{% block title %}Ask Oufy{% endblock %}</title>
+  <link rel="stylesheet" href="/static/css/main.css" />
+  {% block extra_head %}{% endblock %}
+</head>
+<body class="{% block body_class %}{% endblock %}">
+  <header class="site-header">
+    <a class="brand" href="/">
+      <span class="brand-name">Ask Oufy</span>
+      <span class="brand-subtitle">Infinity Cycling Club Policy Assistant</span>
+    </a>
+    <nav class="site-nav">
+      {% block nav %}{% endblock %}
+    </nav>
+  </header>
+
+  <div class="site-main">
+    {% block content %}{% endblock %}
+  </div>
+
+  <script>
+    window.__ASK_OUFY_REQUIRE_AUTH__ = true;
+    window.__FIREBASE_CONFIG__ = {{ firebase_config | tojson }};
+  </script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+  <script src="/static/js/firebase-init.js"></script>
+  <script src="/static/js/auth.js"></script>
+  {% block extra_scripts %}{% endblock %}
+</body>
+</html>
