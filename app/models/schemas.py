@@ -36,3 +36,23 @@ class PolicyDocumentModel(BaseModel):
 
 class PolicyLibraryResponse(BaseModel):
     documents: list[PolicyDocumentModel]
+
+
+class PolicyStatusModel(BaseModel):
+    slug: str
+    filename: str
+    title: str
+    mtime: float
+
+
+class PolicyLoadErrorModel(BaseModel):
+    filename: str
+    error: str
+
+
+class AdminStatusResponse(BaseModel):
+    environment: str
+    gemini_model: str
+    prompts_loaded: bool
+    policies: list[PolicyStatusModel]
+    policy_load_errors: list[PolicyLoadErrorModel]

@@ -1,0 +1,59 @@
+.admin-main {
+  max-width: 720px;
+}
+
+.admin-subtitle {
+  color: var(--color-subtitle);
+  margin-bottom: 2rem;
+}
+
+.admin-section {
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 1.5rem 1.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.admin-section h2 {
+  margin-top: 0;
+  font-size: 1.1rem;
+  color: var(--color-primary);
+}
+
+#upload-form {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+#upload-form .primary-button {
+  width: auto;
+}
+
+.admin-message {
+  margin-top: 0.75rem;
+  font-size: 0.9rem;
+}
+
+.admin-message-error {
+  color: var(--color-error);
+}
+
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 1rem;
+}
+
+.admin-table th,
+.admin-table td {
+  border-bottom: 1px solid var(--color-border);
+  padding: 0.5rem 0.75rem;
+  text-align: left;
+  font-size: 0.9rem;
+}
+
+.admin-errors {
+  color: var(--color-error);
+}

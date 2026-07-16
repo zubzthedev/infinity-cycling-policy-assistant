@@ -74,22 +74,3 @@ def test_whoami_accepts_authorised_email_case_insensitively(
     response = client.get("/api/whoami", headers={"Authorization": "Bearer token"})
     assert response.status_code == 200
     assert response.json() == {"email": "member@example.com", "is_admin": False}
-
-
-def test_admin_ping_rejects_non_admin(
-    client: TestClient, monkeypatch: pytest.MonkeyPatch
-) -> None:
-    monkeypatch.setattr(
-        auth, "_verify_id_token", lambda token: {"uid": "u1", "email": "member@example.com"}
-    )
-    response = client.get("/api/admin/ping", headers={"Authorization": "Bearer token"})
-    assert response.status_code == 403
-
-
-def test_admin_ping_allows_admin(client: TestClient, monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setattr(
-        auth, "_verify_id_token", lambda token: {"uid": "u2", "email": "admin@example.com"}
-    )
-    response = client.get("/api/admin/ping", headers={"Authorization": "Bearer token"})
-    assert response.status_code == 200
-    assert response.json() == {"status": "ok", "admin": "admin@example.com"}

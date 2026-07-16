@@ -38,6 +38,24 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 
+// Shows/hides any element marked data-admin-only based on the signed-in
+// user's real is_admin status (from the server) - a UI convenience only;
+// every admin action is still independently enforced by require_admin.
+async function toggleAdminOnlyElements() {
+  const elements = document.querySelectorAll("[data-admin-only]");
+  if (!elements.length) return;
+
+  try {
+    const response = await authorizedFetch("/api/whoami");
+    const isAdmin = response.ok && (await response.json()).is_admin;
+    elements.forEach((el) => {
+      el.hidden = !isAdmin;
+    });
+  } catch (error) {
+    // Non-fatal: admin-only UI elements simply stay hidden.
+  }
+}
+
 // Pages opt in to the redirect guard by setting
 // window.__ASK_OUFY_REQUIRE_AUTH__ = true before this script runs.
 askOufyAuth.onAuthStateChanged((user) => {
@@ -46,6 +64,8 @@ askOufyAuth.onAuthStateChanged((user) => {
     window.location.href = "/";
   } else if (!user && window.__ASK_OUFY_REQUIRE_AUTH__) {
     window.location.href = "/login";
+  } else if (user) {
+    toggleAdminOnlyElements();
   }
 });
 

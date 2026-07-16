@@ -71,3 +71,12 @@ class Settings(BaseSettings):
 def get_settings() -> Settings:
     """Return the process-wide Settings singleton (cached after first call)."""
     return Settings()
+
+
+BASE_DIR = Path(__file__).resolve().parent.parent
+
+
+def resolve_dir(configured: Path) -> Path:
+    """Resolve a configured directory (e.g. policy_dir) against the repo root
+    if it isn't already absolute."""
+    return configured if configured.is_absolute() else BASE_DIR / configured

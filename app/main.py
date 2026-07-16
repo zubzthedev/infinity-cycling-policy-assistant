@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
-from pathlib import Path
 
 from fastapi import Depends, FastAPI, Request
 from fastapi.responses import HTMLResponse
@@ -12,24 +11,17 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
 from app import policies, prompts
-from app.auth import AuthenticatedUser, get_current_user, require_admin
-from app.config import get_settings
-from app.routers import ask, library
-
-BASE_DIR = Path(__file__).resolve().parent.parent
+from app.auth import AuthenticatedUser, get_current_user
+from app.config import BASE_DIR, get_settings, resolve_dir
+from app.routers import admin, ask, library
 
 settings = get_settings()
 
 
-def _resolve_dir(configured: Path) -> Path:
-    """Resolve a configured directory against the repo root if it's relative."""
-    return configured if configured.is_absolute() else BASE_DIR / configured
-
-
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncIterator[None]:
-    policies.reload_store(_resolve_dir(settings.policy_dir))
-    prompts.reload_prompts(_resolve_dir(settings.prompt_dir))
+    policies.reload_store(resolve_dir(settings.policy_dir))
+    prompts.reload_prompts(resolve_dir(settings.prompt_dir))
     yield
 
 
@@ -39,6 +31,8 @@ app.mount("/static", StaticFiles(directory=BASE_DIR / "static"), name="static")
 templates = Jinja2Templates(directory=BASE_DIR / "templates")
 app.include_router(ask.router)
 app.include_router(library.router)
+if settings.enable_admin_ui:
+    app.include_router(admin.router)
 
 
 def _firebase_config() -> dict[str, str]:
@@ -82,6 +76,15 @@ def library_page(request: Request) -> HTMLResponse:
     )
 
 
+@app.get("/admin", response_class=HTMLResponse)
+def admin_page(request: Request) -> HTMLResponse:
+    """Serve the Administration page shell (content and actions go through
+    the protected /api/admin/* endpoints, same reasoning as /library)."""
+    return templates.TemplateResponse(
+        request, "admin.html", {"firebase_config": _firebase_config()}
+    )
+
+
 @app.get("/login", response_class=HTMLResponse)
 def login_page(request: Request) -> HTMLResponse:
     """Serve the Google Sign-In page with Firebase's public web config."""
@@ -94,9 +97,3 @@ def login_page(request: Request) -> HTMLResponse:
 def whoami(user: AuthenticatedUser = Depends(get_current_user)) -> dict[str, object]:
     """Minimal protected route proving the 401/403/200 auth paths work."""
     return {"email": user.email, "is_admin": user.is_admin}
-
-
-@app.get("/api/admin/ping")
-def admin_ping(user: AuthenticatedUser = Depends(require_admin)) -> dict[str, str]:
-    """Minimal admin-only route proving the require_admin dependency works."""
-    return {"status": "ok", "admin": user.email}
