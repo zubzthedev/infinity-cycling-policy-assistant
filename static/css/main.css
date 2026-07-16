@@ -269,3 +269,119 @@ body {
   margin: 0.25rem 0 0.75rem;
   padding-left: 1.5rem;
 }
+
+.response-card a {
+  color: var(--color-primary);
+}
+
+/* --- Policy Library page --- */
+
+body.library-page .site-main {
+  max-width: none;
+  padding: 0;
+}
+
+.library-layout {
+  display: flex;
+  align-items: flex-start;
+  gap: 0;
+  min-height: calc(100vh - 65px);
+}
+
+.library-sidebar {
+  width: 260px;
+  flex-shrink: 0;
+  background: var(--color-card);
+  border-right: 1px solid var(--color-border);
+  padding: 1.5rem 1rem;
+  position: sticky;
+  top: 0;
+  height: calc(100vh - 65px);
+  overflow-y: auto;
+}
+
+.library-search-input {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  font-size: 0.9rem;
+  margin-bottom: 1rem;
+}
+
+.library-nav-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.library-nav-link {
+  padding: 0.5rem 0.6rem;
+  border-radius: 6px;
+  color: var(--color-text);
+  text-decoration: none;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.library-nav-link:hover {
+  background: var(--color-bg);
+}
+
+.library-content {
+  flex: 1;
+  min-width: 0;
+  padding: 2rem 2.5rem 4rem;
+  max-width: 760px;
+}
+
+.library-document {
+  padding-bottom: 2.5rem;
+  margin-bottom: 2.5rem;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.library-document:last-child {
+  border-bottom: none;
+}
+
+.library-document table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 1rem 0;
+}
+
+.library-document th,
+.library-document td {
+  border: 1px solid var(--color-border);
+  padding: 0.5rem 0.75rem;
+  text-align: left;
+}
+
+.library-document h1 {
+  color: var(--color-primary);
+  font-size: 1.5rem;
+}
+
+.library-document h2,
+.library-document h3 {
+  color: var(--color-primary);
+  scroll-margin-top: 1.5rem;
+}
+
+.library-highlight {
+  animation: library-highlight-fade 2s ease-out;
+}
+
+@keyframes library-highlight-fade {
+  from {
+    background: #fff6d8;
+  }
+  to {
+    background: transparent;
+  }
+}
+
+.library-error {
+  color: var(--color-error);
+}

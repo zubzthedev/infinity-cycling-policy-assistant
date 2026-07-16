@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block title %}Policy Library — Ask Oufy{% endblock %}
+{% block body_class %}library-page{% endblock %}
+
+{% block nav %}
+<a class="nav-link-button" href="/">Ask Oufy</a>
+<button id="sign-out" type="button" class="nav-link-button">Sign out</button>
+{% endblock %}
+
+{% block content %}
+<div class="library-layout">
+  <aside class="library-sidebar">
+    <input
+      type="search"
+      id="library-search-input"
+      class="library-search-input"
+      placeholder="Search policies..."
+    />
+    <nav id="library-nav-list" class="library-nav-list" aria-label="Policy documents"></nav>
+  </aside>
+  <div id="library-content" class="library-content">
+    <p id="library-loading">Loading policy library...</p>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="/static/js/library.js"></script>
+{% endblock %}

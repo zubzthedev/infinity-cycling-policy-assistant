@@ -84,12 +84,17 @@ def test_ask_returns_structured_response(
     assert response.status_code == 200
     body = response.json()
     assert "<h2" in body["answer_html"]
-    assert body["answer_markdown"] == canned_answer
     matched = next(
         (ref for ref in body["policy_references"] if ref["policy_slug"] == "constitution"), None
     )
     assert matched is not None
     assert matched["section_slug"] is not None
+
+    # The Policy References line is rewritten into a real Markdown link
+    # pointing at the matched section's Policy Library anchor.
+    expected_href = f"/library#{matched['section_slug']}"
+    assert f"[Constitution Section 6.2]({expected_href})" in body["answer_markdown"]
+    assert f'<a href="{expected_href}">Constitution Section 6.2</a>' in body["answer_html"]
 
 
 def test_ask_rejects_empty_question(client: TestClient) -> None:
@@ -177,3 +182,28 @@ def test_extract_policy_references_returns_plain_text_when_no_match(tmp_path: Pa
 def test_extract_policy_references_returns_empty_when_no_references_heading() -> None:
     empty_store = policies.PolicyStore(policies={}, order=(), errors=())
     assert ask_router.extract_policy_references("no references here", empty_store) == []
+
+
+def test_link_policy_references_rewrites_matched_line_as_markdown_link(tmp_path: Path) -> None:
+    (tmp_path / "constitution.md").write_text(
+        "# Constitution\n\n## 6.2 Voting and Conflicts of Interest\n\nBody.\n", encoding="utf-8"
+    )
+    store = policies.load_policies(tmp_path)
+    answer = "## Policy References\n\n* Constitution Section 6.2\n"
+
+    new_text, references = ask_router.link_policy_references(answer, store)
+
+    assert len(references) == 1
+    expected_href = f"/library#{references[0].section_slug}"
+    assert f"* [Constitution Section 6.2]({expected_href})" in new_text
+
+
+def test_link_policy_references_leaves_unmatched_line_as_plain_text(tmp_path: Path) -> None:
+    (tmp_path / "constitution.md").write_text("# Constitution\n", encoding="utf-8")
+    store = policies.load_policies(tmp_path)
+    answer = "## Policy References\n\n* Some Unknown Policy Section 9.9\n"
+
+    new_text, references = ask_router.link_policy_references(answer, store)
+
+    assert new_text == answer
+    assert references[0].policy_slug is None

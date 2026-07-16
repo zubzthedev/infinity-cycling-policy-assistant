@@ -89,19 +89,29 @@ def _derive_title(markdown_text: str, fallback: str) -> str:
     return fallback
 
 
-def _extract_sections(md: markdown_lib.Markdown) -> tuple[Section, ...]:
-    """Flatten the `toc` extension's nested heading tree into a flat list."""
+def _extract_sections_and_rewrite_html(
+    doc_slug: str, html: str, md: markdown_lib.Markdown
+) -> tuple[tuple[Section, ...], str]:
+    """Flatten the `toc` extension's heading tree and prefix every anchor id
+    with the document's slug (e.g. `6-2-...` -> `constitution--6-2-...`).
+
+    The Policy Library renders every document on a single page, so heading
+    ids must be globally unique across documents - without this, two policies
+    with a similarly-worded heading would collide on the same anchor id.
+    """
     sections: list[Section] = []
 
     def walk(tokens: list[dict]) -> None:
+        nonlocal html
         for token in tokens:
-            sections.append(
-                Section(slug=token["id"], heading=token["name"], level=token["level"])
-            )
+            original_id = token["id"]
+            prefixed_id = f"{doc_slug}--{original_id}"
+            html = html.replace(f'id="{original_id}"', f'id="{prefixed_id}"', 1)
+            sections.append(Section(slug=prefixed_id, heading=token["name"], level=token["level"]))
             walk(token.get("children", []))
 
     walk(getattr(md, "toc_tokens", []))
-    return tuple(sections)
+    return tuple(sections), html
 
 
 def _load_one(path: Path) -> Policy:
@@ -112,7 +122,7 @@ def _load_one(path: Path) -> Policy:
 
     md = markdown_lib.Markdown(extensions=["tables", "toc", "fenced_code", "sane_lists"])
     html = md.convert(raw)
-    sections = _extract_sections(md)
+    sections, html = _extract_sections_and_rewrite_html(slug, html, md)
 
     return Policy(
         slug=slug,

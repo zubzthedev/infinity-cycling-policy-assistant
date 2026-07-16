@@ -14,7 +14,7 @@ from fastapi.templating import Jinja2Templates
 from app import policies, prompts
 from app.auth import AuthenticatedUser, get_current_user, require_admin
 from app.config import get_settings
-from app.routers import ask
+from app.routers import ask, library
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -38,6 +38,7 @@ app = FastAPI(title="Ask Oufy", lifespan=lifespan)
 app.mount("/static", StaticFiles(directory=BASE_DIR / "static"), name="static")
 templates = Jinja2Templates(directory=BASE_DIR / "templates")
 app.include_router(ask.router)
+app.include_router(library.router)
 
 
 def _firebase_config() -> dict[str, str]:
@@ -68,6 +69,16 @@ def index_page(request: Request) -> HTMLResponse:
     """Serve the Ask Oufy landing page (auth is enforced by /api/ask, not here)."""
     return templates.TemplateResponse(
         request, "index.html", {"firebase_config": _firebase_config()}
+    )
+
+
+@app.get("/library", response_class=HTMLResponse)
+def library_page(request: Request) -> HTMLResponse:
+    """Serve the Policy Library page shell (content is fetched client-side
+    from GET /api/policies, which is where auth is actually enforced - a
+    plain page navigation can't carry a Bearer token)."""
+    return templates.TemplateResponse(
+        request, "library.html", {"firebase_config": _firebase_config()}
     )
 
 

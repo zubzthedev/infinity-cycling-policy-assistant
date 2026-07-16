@@ -42,15 +42,55 @@ def extract_policy_references(answer_text: str, store: PolicyStore) -> list[Poli
     raw answer is still returned unchanged by the caller; nothing here ever
     blocks rendering the answer.
     """
+    _, references = link_policy_references(answer_text, store)
+    return references
+
+
+def _reference_href(reference: PolicyReference) -> str | None:
+    if reference.section_slug:
+        return f"/library#{reference.section_slug}"
+    if reference.policy_slug:
+        return f"/library#{reference.policy_slug}"
+    return None
+
+
+def link_policy_references(
+    answer_text: str, store: PolicyStore
+) -> tuple[str, list[PolicyReference]]:
+    """Turn citable lines in the "## Policy References" section into real
+    Markdown links to the Policy Library, alongside the parsed reference list.
+
+    Only a line that matches a known policy (or policy section) becomes a
+    link; anything else is left as plain text, so a mismatch never produces
+    a dead or misleading link. The links point at anchors rendered by
+    templates/library.html / static/js/library.js.
+    """
     heading_match = _REFERENCES_HEADING_RE.search(answer_text)
     if not heading_match:
-        return []
+        return answer_text, []
 
     remainder = answer_text[heading_match.end() :]
     next_heading = _NEXT_HEADING_RE.search(remainder)
-    block = remainder[: next_heading.start()] if next_heading else remainder
+    block_end = heading_match.end() + (next_heading.start() if next_heading else len(remainder))
+    block = answer_text[heading_match.end() : block_end]
 
-    return [_match_reference(line.strip(), store) for line in _LIST_ITEM_RE.findall(block)]
+    references: list[PolicyReference] = []
+    rebuilt_parts: list[str] = []
+    cursor = 0
+    for match in _LIST_ITEM_RE.finditer(block):
+        rebuilt_parts.append(block[cursor : match.start()])
+        line = match.group(1).strip()
+        reference = _match_reference(line, store)
+        references.append(reference)
+
+        href = _reference_href(reference)
+        replacement_line = f"[{line}]({href})" if href else line
+        rebuilt_parts.append(match.group(0).replace(match.group(1), replacement_line, 1))
+        cursor = match.end()
+    rebuilt_parts.append(block[cursor:])
+
+    new_text = answer_text[: heading_match.end()] + "".join(rebuilt_parts) + answer_text[block_end:]
+    return new_text, references
 
 
 def _match_reference(line: str, store: PolicyStore) -> PolicyReference:
@@ -87,13 +127,13 @@ async def ask(
     prompt = build_prompt(request.question, store, get_prompts())
 
     try:
-        answer_markdown = await ask_gemini(prompt, settings=settings)
+        raw_answer = await ask_gemini(prompt, settings=settings)
     except GeminiTimeoutError as exc:
         raise HTTPException(status_code=504, detail=str(exc)) from exc
     except GeminiAPIError as exc:
         raise HTTPException(status_code=502, detail=str(exc)) from exc
 
-    references = extract_policy_references(answer_markdown, store)
+    answer_markdown, references = link_policy_references(raw_answer, store)
     answer_html = markdown_lib.markdown(
         answer_markdown, extensions=["tables", "sane_lists", "fenced_code"]
     )

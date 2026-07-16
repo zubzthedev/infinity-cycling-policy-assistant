@@ -19,3 +19,20 @@ class AskResponse(BaseModel):
     answer_html: str
     answer_markdown: str
     policy_references: list[PolicyReferenceModel]
+
+
+class SectionModel(BaseModel):
+    slug: str
+    heading: str
+    level: int
+
+
+class PolicyDocumentModel(BaseModel):
+    slug: str
+    title: str
+    html: str
+    sections: list[SectionModel]
+
+
+class PolicyLibraryResponse(BaseModel):
+    documents: list[PolicyDocumentModel]
