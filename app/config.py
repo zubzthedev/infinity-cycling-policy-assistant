@@ -4,10 +4,10 @@ from __future__ import annotations
 
 from functools import lru_cache
 from pathlib import Path
-from typing import Literal
+from typing import Annotated, Literal
 
 from pydantic import field_validator, model_validator
-from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
 
 
 class Settings(BaseSettings):
@@ -17,7 +17,7 @@ class Settings(BaseSettings):
 
     # Gemini
     gemini_api_key: str = ""
-    gemini_model: str = "gemini-2.5-flash"
+    gemini_model: str = "gemini-3.1-flash-lite"
     gemini_timeout_seconds: float = 30.0
 
     # Firebase (client-side web config is public by design; access control is
@@ -32,9 +32,11 @@ class Settings(BaseSettings):
     policy_dir: Path = Path("policies")
     prompt_dir: Path = Path("prompts")
 
-    # Access control
-    authorised_users: set[str] = set()
-    admin_users: set[str] = set()
+    # Access control (NoDecode: these arrive as a plain comma-separated
+    # string from the environment, not JSON - _parse_email_set does the
+    # actual parsing below)
+    authorised_users: Annotated[set[str], NoDecode] = set()
+    admin_users: Annotated[set[str], NoDecode] = set()
 
     # Logging
     log_questions: bool = True
