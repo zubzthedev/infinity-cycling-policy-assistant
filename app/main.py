@@ -44,9 +44,16 @@ def _firebase_config() -> dict[str, str]:
     }
 
 
-@app.get("/healthz")
+@app.get("/api/health")
 def healthz() -> dict[str, object]:
-    """Liveness/readiness probe used by Cloud Run and local checks."""
+    """Liveness/readiness probe used by Cloud Run and local checks.
+
+    Deliberately not /healthz: Cloud Run's default *.run.app domain
+    intercepts that exact path at Google's own infrastructure layer and
+    returns a generic Google 404 page before it ever reaches the
+    container - confirmed empirically, not documented behaviour. Every
+    other path (including other /api/* routes) passes through fine.
+    """
     store = policies.get_store()
     prompt_set = prompts.get_prompts()
     return {

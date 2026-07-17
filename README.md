@@ -17,4 +17,4 @@ cp .env.example .env       # fill in real values as later milestones require the
 uvicorn app.main:app --reload
 ```
 
-Then visit `http://127.0.0.1:8000/healthz`.
+Then visit `http://127.0.0.1:8000/api/health`.
