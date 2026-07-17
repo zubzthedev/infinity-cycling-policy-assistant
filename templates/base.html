@@ -20,8 +20,15 @@
 <body class="auth-pending {% block body_class %}{% endblock %}">
   <header class="site-header">
     <a class="brand" href="/">
-      <span class="brand-name">Ask Oufy</span>
-      <span class="brand-subtitle">Infinity Cycling Club Policy Assistant</span>
+      <img
+        class="brand-logo"
+        src="/static/images/icc_logo.png?v={{ static_version }}"
+        alt="Infinity Cycling Club"
+      />
+      <span class="brand-text">
+        <span class="brand-name">Ask Oufy</span>
+        <span class="brand-subtitle">Infinity Cycling Club Policy Assistant</span>
+      </span>
     </a>
     <nav class="site-nav">
       {% block nav %}{% endblock %}

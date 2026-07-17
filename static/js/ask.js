@@ -41,12 +41,16 @@ window.addEventListener("afterprint", () => {
   });
 });
 
-function renderResponseCard(answerHtml) {
+function renderResponseCard(question, answerHtml) {
   const resultsEl = document.getElementById("ask-results");
   if (!resultsEl) return null;
 
   const card = document.createElement("article");
   card.className = "response-card";
+
+  const heading = document.createElement("h2");
+  heading.className = "response-card-question";
+  heading.textContent = question;
 
   const toolbar = document.createElement("div");
   toolbar.className = "response-card-toolbar";
@@ -61,6 +65,7 @@ function renderResponseCard(answerHtml) {
   body.className = "response-card-body";
   body.innerHTML = answerHtml;
 
+  card.appendChild(heading);
   card.appendChild(toolbar);
   card.appendChild(body);
   resultsEl.prepend(card);
@@ -93,7 +98,7 @@ async function submitQuestion(question) {
     }
 
     const data = await response.json();
-    const card = renderResponseCard(data.answer_html);
+    const card = renderResponseCard(question, data.answer_html);
     setStatus("", false);
     showToast("Ask Oufy has answered");
     if (card) {
