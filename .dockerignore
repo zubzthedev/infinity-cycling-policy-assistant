@@ -1,0 +1,34 @@
+# Version control
+.git
+.gitignore
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+htmlcov/
+.coverage
+
+# Secrets / local env
+.env
+*.json
+
+# Editors / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Docs and non-runtime files (policies/prompts ARE runtime data - keep them)
+README.md
+*.md
+!policies/*.md
+!prompts/*.md
+
+# Tests aren't needed in the runtime image
+tests/
