@@ -29,6 +29,7 @@ from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
 
+import google.auth
 import markdown as markdown_lib
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
@@ -218,12 +219,22 @@ _drive_service: object | None = None
 
 
 def _get_drive_service(credentials_path: str) -> object:
-    """Lazily build the Drive API client, once per process."""
+    """Lazily build the Drive API client, once per process.
+
+    With a credentials_path (local dev, via GOOGLE_APPLICATION_CREDENTIALS),
+    loads that service account key file directly. Without one, falls back
+    to Application Default Credentials - e.g. Cloud Run running as the
+    service account itself, which needs no key file at all and is the
+    more secure production setup.
+    """
     global _drive_service
     if _drive_service is None:
-        credentials = service_account.Credentials.from_service_account_file(
-            credentials_path, scopes=[_DRIVE_READONLY_SCOPE]
-        )
+        if credentials_path:
+            credentials = service_account.Credentials.from_service_account_file(
+                credentials_path, scopes=[_DRIVE_READONLY_SCOPE]
+            )
+        else:
+            credentials, _ = google.auth.default(scopes=[_DRIVE_READONLY_SCOPE])
         _drive_service = build("drive", "v3", credentials=credentials, cache_discovery=False)
     return _drive_service
 

@@ -129,6 +129,49 @@ def test_load_policies_from_drive_builds_store_from_mocked_files(
     assert store.errors == ()
 
 
+def test_get_drive_service_uses_key_file_when_credentials_path_given(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    policies._drive_service = None
+    captured: dict[str, object] = {}
+
+    def fake_from_file(path: str, scopes: list[str]) -> str:
+        captured["path"] = path
+        captured["scopes"] = scopes
+        return "fake-credentials"
+
+    monkeypatch.setattr(
+        policies.service_account.Credentials, "from_service_account_file", fake_from_file
+    )
+    monkeypatch.setattr(policies, "build", lambda *a, **kw: "fake-service")
+
+    service = policies._get_drive_service("creds.json")
+
+    assert service == "fake-service"
+    assert captured["path"] == "creds.json"
+    policies._drive_service = None
+
+
+def test_get_drive_service_falls_back_to_adc_when_no_credentials_path(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    policies._drive_service = None
+    captured: dict[str, object] = {}
+
+    def fake_default(scopes: list[str]) -> tuple[str, str]:
+        captured["scopes"] = scopes
+        return ("fake-adc-credentials", "fake-project")
+
+    monkeypatch.setattr(policies.google.auth, "default", fake_default)
+    monkeypatch.setattr(policies, "build", lambda *a, **kw: "fake-service")
+
+    service = policies._get_drive_service("")
+
+    assert service == "fake-service"
+    assert captured["scopes"] == [policies._DRIVE_READONLY_SCOPE]
+    policies._drive_service = None
+
+
 def test_load_policies_from_drive_handles_listing_failure(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
