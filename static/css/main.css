@@ -189,14 +189,14 @@ body {
 .response-sections {
   border: 1px solid var(--color-border);
   border-radius: 6px;
-  padding: 0.5rem 1rem 0.75rem;
+  padding: 0.35rem 0.75rem 0.45rem;
   display: flex;
   flex-wrap: wrap;
-  gap: 0.5rem 1.25rem;
+  gap: 0.3rem 1rem;
 }
 
 .response-sections legend {
-  font-size: 0.8rem;
+  font-size: 0.7rem;
   font-weight: 600;
   color: var(--color-subtitle);
   text-transform: uppercase;
@@ -207,43 +207,14 @@ body {
 .response-sections label {
   display: flex;
   align-items: center;
-  gap: 0.4rem;
-  font-size: 0.9rem;
+  gap: 0.3rem;
+  font-size: 0.78rem;
   cursor: pointer;
 }
 
-.example-questions {
-  margin-top: 1.5rem;
-}
-
-.example-questions-label {
-  margin: 0 0 0.5rem;
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: var(--color-subtitle);
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
-}
-
-.example-questions-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-}
-
-.example-question {
-  background: var(--color-bg);
-  border: 1px solid var(--color-border);
-  border-radius: 999px;
-  padding: 0.4rem 0.9rem;
-  font-size: 0.85rem;
-  color: var(--color-text);
-  cursor: pointer;
-  text-align: left;
-}
-
-.example-question:hover {
-  background: #eceff2;
+.response-sections input[type="checkbox"] {
+  width: 0.8rem;
+  height: 0.8rem;
 }
 
 .ask-status {
@@ -276,6 +247,76 @@ body {
   padding: 1.5rem 1.75rem;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
   line-height: 1.6;
+}
+
+.response-card-toolbar {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 0.5rem;
+}
+
+.export-pdf-button {
+  background: none;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  padding: 0.3rem 0.7rem;
+  font-size: 0.8rem;
+  color: var(--color-subtitle);
+  cursor: pointer;
+}
+
+.export-pdf-button:hover {
+  background: var(--color-bg);
+  color: var(--color-text);
+}
+
+/* Toast shown briefly after Ask Oufy answers. */
+.ask-toast {
+  position: fixed;
+  top: 1rem;
+  left: 50%;
+  transform: translateX(-50%) translateY(-1rem);
+  background: #1e6b3c;
+  color: #fff;
+  padding: 0.6rem 1.25rem;
+  border-radius: 999px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease, transform 0.25s ease;
+  z-index: 1000;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.ask-toast-visible {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* Printing (used by "Export to PDF"): show only the one response card
+   marked .print-target, nothing else on the page. */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+
+  .response-card.print-target,
+  .response-card.print-target * {
+    visibility: visible;
+  }
+
+  .response-card.print-target {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    box-shadow: none;
+  }
+
+  .export-pdf-button {
+    display: none !important;
+  }
 }
 
 .response-card h2 {

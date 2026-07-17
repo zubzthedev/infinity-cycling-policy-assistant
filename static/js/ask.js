@@ -1,5 +1,5 @@
-// Landing page interactions for Ask Oufy: submit questions, render response
-// cards, and wire up example-question shortcuts.
+// Landing page interactions for Ask Oufy: submit questions and render
+// response cards.
 
 function setStatus(message, isError) {
   const statusEl = document.getElementById("ask-status");
@@ -14,14 +14,57 @@ function setStatus(message, isError) {
   statusEl.classList.toggle("ask-status-error", Boolean(isError));
 }
 
+function showToast(message) {
+  let toast = document.getElementById("ask-toast");
+  if (!toast) {
+    toast = document.createElement("div");
+    toast.id = "ask-toast";
+    toast.className = "ask-toast";
+    document.body.appendChild(toast);
+  }
+  toast.textContent = message;
+  toast.classList.add("ask-toast-visible");
+  clearTimeout(toast._hideTimeout);
+  toast._hideTimeout = window.setTimeout(() => {
+    toast.classList.remove("ask-toast-visible");
+  }, 2200);
+}
+
+function exportCardToPdf(card) {
+  card.classList.add("print-target");
+  window.print();
+}
+
+window.addEventListener("afterprint", () => {
+  document.querySelectorAll(".print-target").forEach((el) => {
+    el.classList.remove("print-target");
+  });
+});
+
 function renderResponseCard(answerHtml) {
   const resultsEl = document.getElementById("ask-results");
-  if (!resultsEl) return;
+  if (!resultsEl) return null;
 
   const card = document.createElement("article");
   card.className = "response-card";
-  card.innerHTML = answerHtml;
+
+  const toolbar = document.createElement("div");
+  toolbar.className = "response-card-toolbar";
+  const exportButton = document.createElement("button");
+  exportButton.type = "button";
+  exportButton.className = "export-pdf-button";
+  exportButton.textContent = "Export to PDF";
+  exportButton.addEventListener("click", () => exportCardToPdf(card));
+  toolbar.appendChild(exportButton);
+
+  const body = document.createElement("div");
+  body.className = "response-card-body";
+  body.innerHTML = answerHtml;
+
+  card.appendChild(toolbar);
+  card.appendChild(body);
   resultsEl.prepend(card);
+  return card;
 }
 
 function getSelectedSections() {
@@ -50,8 +93,12 @@ async function submitQuestion(question) {
     }
 
     const data = await response.json();
-    renderResponseCard(data.answer_html);
+    const card = renderResponseCard(data.answer_html);
     setStatus("", false);
+    showToast("Ask Oufy has answered");
+    if (card) {
+      card.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
   } catch (error) {
     setStatus(error.message || "Something went wrong. Please try again.", true);
   } finally {
@@ -71,14 +118,6 @@ document.addEventListener("DOMContentLoaded", () => {
       submitQuestion(question);
     });
   }
-
-  document.querySelectorAll(".example-question").forEach((button) => {
-    button.addEventListener("click", () => {
-      if (!input) return;
-      input.value = button.textContent.trim();
-      input.focus();
-    });
-  });
 
   const signOutButton = document.getElementById("sign-out");
   if (signOutButton) {
