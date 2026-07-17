@@ -13,6 +13,7 @@ from app.auth import AuthenticatedUser, get_current_user
 from app.config import Settings, get_settings
 from app.gemini import GeminiAPIError, GeminiTimeoutError
 from app.main import app as fastapi_app
+from app.models.schemas import RESPONSE_SECTION_HEADINGS
 from app.routers import ask as ask_router
 
 AUTHORISED_USER = AuthenticatedUser(uid="u1", email="member@example.com", is_admin=False)
@@ -26,7 +27,7 @@ def make_settings(**overrides: object) -> Settings:
         "rate_limit_per_minute": 1000,
     }
     defaults.update(overrides)
-    return Settings(**defaults)
+    return Settings(_env_file=None, **defaults)
 
 
 @pytest.fixture(autouse=True)
@@ -207,3 +208,72 @@ def test_link_policy_references_leaves_unmatched_line_as_plain_text(tmp_path: Pa
 
     assert new_text == answer
     assert references[0].policy_slug is None
+
+
+def test_build_section_override_returns_empty_for_none() -> None:
+    assert ask_router._build_section_override(None) == ""
+
+
+def test_build_section_override_returns_empty_when_all_sections_selected() -> None:
+    all_keys = list(RESPONSE_SECTION_HEADINGS.keys())
+    assert ask_router._build_section_override(all_keys) == ""
+
+
+def test_build_section_override_builds_instruction_for_subset() -> None:
+    override = ask_router._build_section_override(["summary", "recommended_process"])
+
+    assert "- Summary" in override
+    assert "- Recommended Process" in override
+    assert "Reasoning" not in override
+    assert "Applicable Policies" not in override
+
+
+def test_ask_rejects_unknown_section_key(client: TestClient) -> None:
+    response = client.post(
+        "/api/ask",
+        json={"question": "Can a member be suspended?", "sections": ["not-a-real-section"]},
+    )
+    assert response.status_code == 422
+
+
+def test_ask_applies_section_override_to_prompt(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    captured: dict[str, str] = {}
+
+    async def fake_ask_gemini(prompt: str, settings: Settings | None = None) -> str:
+        captured["prompt"] = prompt
+        return "## Summary\n\nok\n"
+
+    monkeypatch.setattr(ask_router, "ask_gemini", fake_ask_gemini)
+
+    response = client.post(
+        "/api/ask",
+        json={
+            "question": "Can a member be suspended?",
+            "sections": ["summary", "recommended_process"],
+        },
+    )
+
+    assert response.status_code == 200
+    assert "RESPONSE SCOPE OVERRIDE" in captured["prompt"]
+    assert "- Summary" in captured["prompt"]
+    assert "- Recommended Process" in captured["prompt"]
+    assert "- Reasoning" not in captured["prompt"]
+
+
+def test_ask_omits_override_when_no_sections_specified(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    captured: dict[str, str] = {}
+
+    async def fake_ask_gemini(prompt: str, settings: Settings | None = None) -> str:
+        captured["prompt"] = prompt
+        return "## Summary\n\nok\n"
+
+    monkeypatch.setattr(ask_router, "ask_gemini", fake_ask_gemini)
+
+    response = client.post("/api/ask", json={"question": "Can a member be suspended?"})
+
+    assert response.status_code == 200
+    assert "RESPONSE SCOPE OVERRIDE" not in captured["prompt"]

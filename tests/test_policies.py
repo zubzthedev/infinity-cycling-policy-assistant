@@ -168,7 +168,7 @@ def test_load_policies_from_drive_skips_malformed_file(monkeypatch: pytest.Monke
 
 def test_reload_policies_dispatches_to_local_source(tmp_path: Path) -> None:
     (tmp_path / "constitution.md").write_text("# Constitution\n", encoding="utf-8")
-    settings = Settings(policy_source="local", policy_dir=tmp_path)
+    settings = Settings(_env_file=None, policy_source="local", policy_dir=tmp_path)
 
     store = policies.reload_policies(settings)
 
@@ -184,6 +184,7 @@ def test_reload_policies_dispatches_to_drive_source(monkeypatch: pytest.MonkeyPa
     )
 
     settings = Settings(
+        _env_file=None,
         policy_source="drive",
         drive_folder_id="abc123",
         google_application_credentials="fake-creds.json",

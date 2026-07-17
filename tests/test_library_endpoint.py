@@ -23,7 +23,7 @@ def make_settings(**overrides: object) -> Settings:
         "admin_users": set(),
     }
     defaults.update(overrides)
-    return Settings(**defaults)
+    return Settings(_env_file=None, **defaults)
 
 
 @pytest.fixture(autouse=True)

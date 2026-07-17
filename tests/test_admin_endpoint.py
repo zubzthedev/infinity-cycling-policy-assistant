@@ -25,7 +25,7 @@ def make_settings(policy_dir: Path, prompt_dir: Path, **overrides: object) -> Se
         "prompt_dir": prompt_dir,
     }
     defaults.update(overrides)
-    return Settings(**defaults)
+    return Settings(_env_file=None, **defaults)
 
 
 @pytest.fixture
@@ -132,3 +132,49 @@ def test_reload_uses_drive_source_when_configured(
     assert body["policy_source"] == "drive"
     assert any(p["slug"] == "racing" for p in body["policies"])
     fastapi_app.dependency_overrides.clear()
+
+
+def test_get_prompts_requires_admin(dirs: tuple[Path, Path]) -> None:
+    policy_dir, prompt_dir = dirs
+    fastapi_app.dependency_overrides[get_settings] = lambda: make_settings(policy_dir, prompt_dir)
+    fastapi_app.dependency_overrides[get_current_user] = lambda: NON_ADMIN_USER
+    non_admin_client = TestClient(fastapi_app)
+
+    response = non_admin_client.get("/api/admin/prompts")
+
+    assert response.status_code == 403
+    fastapi_app.dependency_overrides.clear()
+
+
+def test_get_prompts_returns_current_content(admin_client: TestClient) -> None:
+    response = admin_client.get("/api/admin/prompts")
+
+    assert response.status_code == 200
+    assert response.json() == {
+        "system": "SYSTEM",
+        "response_rules": "RULES",
+        "examples": "EXAMPLES",
+    }
+
+
+def test_put_prompts_updates_files_and_reloads(
+    admin_client: TestClient, dirs: tuple[Path, Path]
+) -> None:
+    _, prompt_dir = dirs
+
+    response = admin_client.put(
+        "/api/admin/prompts",
+        json={"system": "NEW SYSTEM", "response_rules": "NEW RULES", "examples": "NEW EXAMPLES"},
+    )
+
+    assert response.status_code == 200
+    assert (prompt_dir / "system.md").read_text(encoding="utf-8") == "NEW SYSTEM"
+    assert (prompt_dir / "response_rules.md").read_text(encoding="utf-8") == "NEW RULES"
+    assert (prompt_dir / "examples.md").read_text(encoding="utf-8") == "NEW EXAMPLES"
+
+    get_response = admin_client.get("/api/admin/prompts")
+    assert get_response.json() == {
+        "system": "NEW SYSTEM",
+        "response_rules": "NEW RULES",
+        "examples": "NEW EXAMPLES",
+    }

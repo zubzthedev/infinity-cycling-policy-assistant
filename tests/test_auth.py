@@ -20,7 +20,7 @@ def make_settings(**overrides: Any) -> Settings:
         "admin_users": {"admin@example.com"},
     }
     defaults.update(overrides)
-    return Settings(**defaults)
+    return Settings(_env_file=None, **defaults)
 
 
 @pytest.fixture

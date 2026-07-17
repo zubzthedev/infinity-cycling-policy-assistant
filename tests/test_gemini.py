@@ -17,7 +17,7 @@ def make_settings(**overrides: object) -> Settings:
         "gemini_timeout_seconds": 5.0,
     }
     defaults.update(overrides)
-    return Settings(**defaults)
+    return Settings(_env_file=None, **defaults)
 
 
 @pytest.mark.asyncio

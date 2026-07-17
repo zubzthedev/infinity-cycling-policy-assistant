@@ -24,6 +24,14 @@ function renderResponseCard(answerHtml) {
   resultsEl.prepend(card);
 }
 
+function getSelectedSections() {
+  const checkboxes = document.querySelectorAll(".section-checkbox");
+  if (!checkboxes.length) return null;
+  return Array.from(checkboxes)
+    .filter((checkbox) => checkbox.checked)
+    .map((checkbox) => checkbox.value);
+}
+
 async function submitQuestion(question) {
   const submitButton = document.getElementById("ask-submit");
   submitButton.disabled = true;
@@ -33,7 +41,7 @@ async function submitQuestion(question) {
     const response = await window.AskOufyAuth.authorizedFetch("/api/ask", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ question: question }),
+      body: JSON.stringify({ question: question, sections: getSelectedSections() }),
     });
 
     if (!response.ok) {

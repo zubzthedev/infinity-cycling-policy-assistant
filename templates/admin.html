@@ -49,6 +49,30 @@
     </button>
     <p id="reload-message" class="admin-message" hidden></p>
   </section>
+
+  <section class="admin-section">
+    <h2>Prompt Engineering</h2>
+    <p class="admin-hint">
+      These three fragments are assembled, in this order, into every request
+      sent to Gemini. Edits here are saved to disk and reloaded immediately -
+      note this does not persist across a Cloud Run redeploy, so treat it as
+      a working/testing tool rather than permanent storage.
+    </p>
+
+    <label class="prompt-field-label" for="prompt-system">System Prompt</label>
+    <textarea id="prompt-system" class="prompt-textarea" rows="8"></textarea>
+
+    <label class="prompt-field-label" for="prompt-response-rules">Response Rules</label>
+    <textarea id="prompt-response-rules" class="prompt-textarea" rows="8"></textarea>
+
+    <label class="prompt-field-label" for="prompt-examples">Examples</label>
+    <textarea id="prompt-examples" class="prompt-textarea" rows="8"></textarea>
+
+    <button id="save-prompts-button" type="button" class="primary-button">
+      Save &amp; Reload Prompts
+    </button>
+    <p id="prompts-message" class="admin-message" hidden></p>
+  </section>
 </main>
 {% endblock %}
 

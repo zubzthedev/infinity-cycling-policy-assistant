@@ -11,7 +11,12 @@ from fastapi import APIRouter, Depends, HTTPException
 from app.auth import AuthenticatedUser
 from app.config import Settings, get_settings
 from app.gemini import GeminiAPIError, GeminiTimeoutError, ask_gemini
-from app.models.schemas import AskRequest, AskResponse, PolicyReferenceModel
+from app.models.schemas import (
+    RESPONSE_SECTION_HEADINGS,
+    AskRequest,
+    AskResponse,
+    PolicyReferenceModel,
+)
 from app.policies import PolicyStore, get_store
 from app.prompts import build_prompt, get_prompts
 from app.rate_limit import rate_limit
@@ -116,6 +121,25 @@ def _match_reference(line: str, store: PolicyStore) -> PolicyReference:
     return PolicyReference(text=line, policy_slug=matched_policy.slug, section_slug=section_slug)
 
 
+def _build_section_override(selected_keys: list[str] | None) -> str:
+    """Build a per-request instruction restricting which response sections
+    Gemini should include, honouring the front end's "Include in response"
+    checkboxes. Returns "" when every section is selected (or none were
+    specified), leaving the default full-structure behaviour unchanged.
+    """
+    if not selected_keys or set(selected_keys) >= set(RESPONSE_SECTION_HEADINGS):
+        return ""
+
+    headings = [RESPONSE_SECTION_HEADINGS[key] for key in selected_keys]
+    heading_list = "\n".join(f"- {heading}" for heading in headings)
+    return (
+        "### RESPONSE SCOPE OVERRIDE FOR THIS REQUEST\n\n"
+        "For this question only, include ONLY the following sections from "
+        f"the response structure above, using their exact headings, and "
+        f"omit all others entirely:\n\n{heading_list}"
+    )
+
+
 @router.post("/api/ask", response_model=AskResponse)
 async def ask(
     request: AskRequest,
@@ -125,6 +149,10 @@ async def ask(
     """Answer a governance question using only the loaded policy library."""
     store = get_store()
     prompt = build_prompt(request.question, store, get_prompts())
+
+    section_override = _build_section_override(request.sections)
+    if section_override:
+        prompt = f"{prompt}\n\n---\n\n{section_override}"
 
     try:
         raw_answer = await ask_gemini(prompt, settings=settings)
