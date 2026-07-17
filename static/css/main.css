@@ -411,3 +411,72 @@ body.library-page .site-main {
 .library-error {
   color: var(--color-error);
 }
+
+/* --- Mobile --- */
+
+@media (max-width: 640px) {
+  .login-page {
+    padding: 1rem;
+  }
+
+  .login-card {
+    padding: 1.75rem 1.25rem;
+  }
+
+  .site-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 1rem;
+  }
+
+  .site-nav {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    width: 100%;
+  }
+
+  .site-main {
+    padding: 1.25rem 1rem 3rem;
+  }
+
+  .ask-intro h1 {
+    font-size: 1.6rem;
+  }
+
+  .ask-form-section {
+    padding: 1.25rem;
+  }
+
+  .ask-form-section .primary-button {
+    width: 100%;
+    align-self: stretch;
+  }
+
+  .response-sections {
+    gap: 0.4rem 0.75rem;
+  }
+
+  .response-card {
+    padding: 1.25rem;
+  }
+
+  body.library-page .library-layout {
+    flex-direction: column;
+    min-height: 0;
+  }
+
+  .library-sidebar {
+    width: 100%;
+    position: static;
+    height: auto;
+    max-height: 40vh;
+    border-right: none;
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .library-content {
+    padding: 1.5rem 1rem 3rem;
+    max-width: 100%;
+  }
+}

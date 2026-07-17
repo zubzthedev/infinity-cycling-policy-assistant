@@ -89,3 +89,22 @@
 .admin-errors {
   color: var(--color-error);
 }
+
+/* --- Mobile --- */
+
+@media (max-width: 640px) {
+  .admin-section {
+    padding: 1.25rem;
+  }
+
+  #reload-button,
+  #save-prompts-button {
+    width: 100%;
+  }
+
+  .admin-table {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+}

@@ -5,9 +5,19 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>{% block title %}Ask Oufy{% endblock %}</title>
   <link rel="stylesheet" href="/static/css/main.css" />
+  <style>
+    /* Hidden until auth.js confirms a signed-in user, so the page never
+       flashes its content before redirecting an unauthenticated visitor
+       to /login - Firebase's auth check is asynchronous, even though it's
+       usually fast. */
+    body.auth-pending .site-header,
+    body.auth-pending .site-main {
+      visibility: hidden;
+    }
+  </style>
   {% block extra_head %}{% endblock %}
 </head>
-<body class="{% block body_class %}{% endblock %}">
+<body class="auth-pending {% block body_class %}{% endblock %}">
   <header class="site-header">
     <a class="brand" href="/">
       <span class="brand-name">Ask Oufy</span>

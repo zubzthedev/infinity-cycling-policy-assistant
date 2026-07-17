@@ -57,14 +57,23 @@ async function toggleAdminOnlyElements() {
 }
 
 // Pages opt in to the redirect guard by setting
-// window.__ASK_OUFY_REQUIRE_AUTH__ = true before this script runs.
+// window.__ASK_OUFY_REQUIRE_AUTH__ = true before this script runs. The page
+// itself starts hidden (see the "auth-pending" style in base.html) so it
+// never flashes its content before a redirect - it's only revealed once we
+// know the visitor should actually see it.
 askOufyAuth.onAuthStateChanged((user) => {
   const onLoginPage = window.location.pathname === "/login";
   if (user && onLoginPage) {
     window.location.href = "/";
-  } else if (!user && window.__ASK_OUFY_REQUIRE_AUTH__) {
+    return;
+  }
+  if (!user && window.__ASK_OUFY_REQUIRE_AUTH__) {
     window.location.href = "/login";
-  } else if (user) {
+    return;
+  }
+
+  document.body.classList.remove("auth-pending");
+  if (user) {
     toggleAdminOnlyElements();
   }
 });
