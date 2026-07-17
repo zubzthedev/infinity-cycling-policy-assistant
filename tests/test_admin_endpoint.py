@@ -86,86 +86,13 @@ def test_status_returns_loaded_policies(admin_client: TestClient) -> None:
     assert response.status_code == 200
     body = response.json()
     assert body["gemini_model"]
+    assert body["policy_source"] == "local"
     assert body["prompts_loaded"] is True
     assert any(p["slug"] == "constitution" for p in body["policies"])
     assert body["policy_load_errors"] == []
 
 
-def test_upload_creates_new_policy(admin_client: TestClient, dirs: tuple[Path, Path]) -> None:
-    policy_dir, _ = dirs
-    response = admin_client.post(
-        "/api/admin/policies",
-        files={"file": ("racing.md", b"# Racing Policy\n\nMarshal duties.\n", "text/markdown")},
-    )
-
-    assert response.status_code == 200
-    body = response.json()
-    assert any(p["slug"] == "racing" for p in body["policies"])
-    assert (policy_dir / "racing.md").read_text(encoding="utf-8") == (
-        "# Racing Policy\n\nMarshal duties.\n"
-    )
-
-
-def test_upload_replaces_existing_policy(admin_client: TestClient, dirs: tuple[Path, Path]) -> None:
-    policy_dir, _ = dirs
-    response = admin_client.post(
-        "/api/admin/policies",
-        files={"file": ("constitution.md", b"# Constitution\n\nUpdated body.\n", "text/markdown")},
-    )
-
-    assert response.status_code == 200
-    assert (policy_dir / "constitution.md").read_text(encoding="utf-8") == (
-        "# Constitution\n\nUpdated body.\n"
-    )
-
-
-def test_upload_rejects_non_markdown_extension(admin_client: TestClient) -> None:
-    response = admin_client.post(
-        "/api/admin/policies",
-        files={"file": ("notes.txt", b"not markdown", "text/plain")},
-    )
-    assert response.status_code == 400
-
-
-def test_upload_rejects_oversized_file(admin_client: TestClient) -> None:
-    oversized_content = b"x" * (500_000 + 1)
-    response = admin_client.post(
-        "/api/admin/policies",
-        files={"file": ("big.md", oversized_content, "text/markdown")},
-    )
-    assert response.status_code == 413
-
-
-def test_upload_sanitises_path_traversal_filename(
-    admin_client: TestClient, dirs: tuple[Path, Path]
-) -> None:
-    policy_dir, _ = dirs
-    response = admin_client.post(
-        "/api/admin/policies",
-        files={"file": ("../../evil.md", b"# Not Actually Evil\n", "text/markdown")},
-    )
-
-    assert response.status_code == 200
-    assert (policy_dir / "evil.md").exists()
-    assert not (policy_dir.parent.parent / "evil.md").exists()
-
-
-def test_delete_removes_policy(admin_client: TestClient, dirs: tuple[Path, Path]) -> None:
-    policy_dir, _ = dirs
-    response = admin_client.delete("/api/admin/policies/constitution")
-
-    assert response.status_code == 200
-    body = response.json()
-    assert all(p["slug"] != "constitution" for p in body["policies"])
-    assert not (policy_dir / "constitution.md").exists()
-
-
-def test_delete_unknown_slug_returns_404(admin_client: TestClient) -> None:
-    response = admin_client.delete("/api/admin/policies/does-not-exist")
-    assert response.status_code == 404
-
-
-def test_reload_picks_up_manually_added_file(
+def test_reload_picks_up_manually_added_local_file(
     admin_client: TestClient, dirs: tuple[Path, Path]
 ) -> None:
     policy_dir, _ = dirs
@@ -176,3 +103,32 @@ def test_reload_picks_up_manually_added_file(
     assert response.status_code == 200
     body = response.json()
     assert any(p["slug"] == "membership" for p in body["policies"])
+
+
+def test_reload_uses_drive_source_when_configured(
+    dirs: tuple[Path, Path], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    policy_dir, prompt_dir = dirs
+    files = [{"id": "f1", "name": "racing.md", "modifiedTime": "2026-01-01T00:00:00.000Z"}]
+    monkeypatch.setattr(policies, "_list_drive_markdown_files", lambda folder_id, creds: files)
+    monkeypatch.setattr(
+        policies, "_fetch_drive_file_content", lambda file_id, creds: "# Racing Policy\n"
+    )
+
+    fastapi_app.dependency_overrides[get_settings] = lambda: make_settings(
+        policy_dir,
+        prompt_dir,
+        policy_source="drive",
+        drive_folder_id="abc123",
+        google_application_credentials="fake-creds.json",
+    )
+    fastapi_app.dependency_overrides[get_current_user] = lambda: ADMIN_USER
+    client = TestClient(fastapi_app)
+
+    response = client.post("/api/admin/reload")
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["policy_source"] == "drive"
+    assert any(p["slug"] == "racing" for p in body["policies"])
+    fastapi_app.dependency_overrides.clear()

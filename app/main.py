@@ -20,7 +20,7 @@ settings = get_settings()
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncIterator[None]:
-    policies.reload_store(resolve_dir(settings.policy_dir))
+    policies.reload_policies(settings)
     prompts.reload_prompts(resolve_dir(settings.prompt_dir))
     yield
 
@@ -52,6 +52,7 @@ def healthz() -> dict[str, object]:
     return {
         "status": "ok",
         "environment": settings.environment,
+        "policy_source": settings.policy_source,
         "policies_loaded": len(store),
         "policy_load_errors": len(store.errors),
         "prompts_loaded": bool(prompt_set.system),

@@ -16,20 +16,20 @@
 {% block content %}
 <main class="admin-main">
   <h1>Administration</h1>
-  <p class="admin-subtitle">Manage the club's policy library and view application status.</p>
+  <p class="admin-subtitle">View application status and reload the policy library.</p>
 
   <section class="admin-section">
     <h2>Application Status</h2>
     <div id="admin-status">Loading status...</div>
   </section>
 
-  <section class="admin-section">
-    <h2>Upload / Replace Policy</h2>
-    <form id="upload-form">
-      <input type="file" id="upload-file-input" name="file" accept=".md" required />
-      <button type="submit" class="primary-button">Upload</button>
-    </form>
-    <p id="upload-message" class="admin-message" hidden></p>
+  <section class="admin-section" id="drive-notice" hidden>
+    <h2>Managing Policies</h2>
+    <p>
+      Policies are managed in the shared Google Drive folder, not on this page.
+      Add, edit, or remove <code>.md</code> files there, then click
+      <strong>Reload policies &amp; prompts</strong> below to pick up the changes.
+    </p>
   </section>
 
   <section class="admin-section">
@@ -40,14 +40,14 @@
           <th>Title</th>
           <th>Filename</th>
           <th>Slug</th>
-          <th></th>
         </tr>
       </thead>
       <tbody id="policies-table-body"></tbody>
     </table>
-    <button id="reload-button" type="button" class="nav-link-button">
+    <button id="reload-button" type="button" class="primary-button">
       Reload policies &amp; prompts
     </button>
+    <p id="reload-message" class="admin-message" hidden></p>
   </section>
 </main>
 {% endblock %}

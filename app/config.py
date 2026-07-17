@@ -29,7 +29,17 @@ class Settings(BaseSettings):
     google_application_credentials: str | None = None
 
     # Policies / prompts
+    # policy_source selects where the live policy library is loaded from:
+    # "local" reads policy_dir on disk (used for local dev, tests, and as
+    # the checked-in seed content); "drive" fetches every .md file from a
+    # shared Google Drive folder (drive_folder_id) using the same service
+    # account credentials as Firebase Admin - this is the source EXCO
+    # actually manages via Drive's own sharing/upload/edit UI, and it
+    # survives Cloud Run redeploys since Drive storage isn't tied to the
+    # container's ephemeral disk.
+    policy_source: Literal["local", "drive"] = "local"
     policy_dir: Path = Path("policies")
+    drive_folder_id: str = ""
     prompt_dir: Path = Path("prompts")
 
     # Access control (NoDecode: these arrive as a plain comma-separated
@@ -66,6 +76,8 @@ class Settings(BaseSettings):
                 raise ValueError("AUTHORISED_USERS must be set in production")
         if self.admin_users - self.authorised_users:
             raise ValueError("Every admin user must also be an authorised user")
+        if self.policy_source == "drive" and not self.drive_folder_id:
+            raise ValueError("DRIVE_FOLDER_ID must be set when POLICY_SOURCE=drive")
         return self
 
 

@@ -53,6 +53,7 @@ class PolicyLoadErrorModel(BaseModel):
 class AdminStatusResponse(BaseModel):
     environment: str
     gemini_model: str
+    policy_source: str
     prompts_loaded: bool
     policies: list[PolicyStatusModel]
     policy_load_errors: list[PolicyLoadErrorModel]
