@@ -14,7 +14,8 @@ async function signInWithGoogle() {
   const provider = new firebase.auth.GoogleAuthProvider();
   try {
     await askOufyAuth.signInWithPopup(provider);
-    window.location.href = "/";
+    // The shared onAuthStateChanged handler below checks the allow-list
+    // and redirects - nothing further to do here.
   } catch (error) {
     showLoginError("Sign-in failed: " + error.message);
   }
@@ -31,6 +32,22 @@ async function authorizedFetch(url, options = {}) {
   return fetch(url, { ...options, headers });
 }
 
+async function fetchWhoami() {
+  try {
+    const response = await authorizedFetch("/api/whoami");
+    if (!response.ok) return null;
+    return await response.json();
+  } catch (error) {
+    return null;
+  }
+}
+
+function applyAdminVisibility(isAdmin) {
+  document.querySelectorAll("[data-admin-only]").forEach((el) => {
+    el.hidden = !isAdmin;
+  });
+}
+
 document.addEventListener("DOMContentLoaded", () => {
   const signInButton = document.getElementById("google-sign-in");
   if (signInButton) {
@@ -38,44 +55,47 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 
-// Shows/hides any element marked data-admin-only based on the signed-in
-// user's real is_admin status (from the server) - a UI convenience only;
-// every admin action is still independently enforced by require_admin.
-async function toggleAdminOnlyElements() {
-  const elements = document.querySelectorAll("[data-admin-only]");
-  if (!elements.length) return;
-
-  try {
-    const response = await authorizedFetch("/api/whoami");
-    const isAdmin = response.ok && (await response.json()).is_admin;
-    elements.forEach((el) => {
-      el.hidden = !isAdmin;
-    });
-  } catch (error) {
-    // Non-fatal: admin-only UI elements simply stay hidden.
-  }
-}
-
+// The allow-list - not just a valid Firebase sign-in - is what actually
+// grants access: every signed-in user is checked against /api/whoami here,
+// immediately after sign-in, so an account that isn't invited is rejected
+// right away with a clear message instead of being allowed to browse the
+// app and only discover it's blocked when it tries to use a feature.
+//
 // Pages opt in to the redirect guard by setting
 // window.__ASK_OUFY_REQUIRE_AUTH__ = true before this script runs. The page
 // itself starts hidden (see the "auth-pending" style in base.html) so it
 // never flashes its content before a redirect - it's only revealed once we
 // know the visitor should actually see it.
-askOufyAuth.onAuthStateChanged((user) => {
+askOufyAuth.onAuthStateChanged(async (user) => {
   const onLoginPage = window.location.pathname === "/login";
-  if (user && onLoginPage) {
-    window.location.href = "/";
+
+  if (!user) {
+    if (window.__ASK_OUFY_REQUIRE_AUTH__) {
+      window.location.href = "/login";
+      return;
+    }
+    document.body.classList.remove("auth-pending");
     return;
   }
-  if (!user && window.__ASK_OUFY_REQUIRE_AUTH__) {
-    window.location.href = "/login";
+
+  const whoami = await fetchWhoami();
+  if (!whoami) {
+    await askOufyAuth.signOut();
+    if (onLoginPage) {
+      showLoginError("This Google account is not authorised to access Ask Oufy.");
+    } else {
+      window.location.href = "/login";
+    }
+    return;
+  }
+
+  if (onLoginPage) {
+    window.location.href = "/";
     return;
   }
 
   document.body.classList.remove("auth-pending");
-  if (user) {
-    toggleAdminOnlyElements();
-  }
+  applyAdminVisibility(whoami.is_admin);
 });
 
 window.AskOufyAuth = { authorizedFetch, signInWithGoogle };

@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>{% block title %}Ask Oufy{% endblock %}</title>
-  <link rel="stylesheet" href="/static/css/main.css" />
+  <link rel="stylesheet" href="/static/css/main.css?v={{ static_version }}" />
   <style>
     /* Hidden until auth.js confirms a signed-in user, so the page never
        flashes its content before redirecting an unauthenticated visitor
@@ -38,8 +38,8 @@
   </script>
   <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
-  <script src="/static/js/firebase-init.js"></script>
-  <script src="/static/js/auth.js"></script>
+  <script src="/static/js/firebase-init.js?v={{ static_version }}"></script>
+  <script src="/static/js/auth.js?v={{ static_version }}"></script>
   {% block extra_scripts %}{% endblock %}
 </body>
 </html>

@@ -4,7 +4,7 @@
 {% block body_class %}admin-page{% endblock %}
 
 {% block extra_head %}
-<link rel="stylesheet" href="/static/css/admin.css" />
+<link rel="stylesheet" href="/static/css/admin.css?v={{ static_version }}" />
 {% endblock %}
 
 {% block nav %}
@@ -77,5 +77,5 @@
 {% endblock %}
 
 {% block extra_scripts %}
-<script src="/static/js/admin.js"></script>
+<script src="/static/js/admin.js?v={{ static_version }}"></script>
 {% endblock %}

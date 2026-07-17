@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import uuid
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 
@@ -17,6 +18,13 @@ from app.routers import admin, ask, library
 
 settings = get_settings()
 
+# A fresh value each time the process starts (i.e. every deploy/restart),
+# appended as a ?v= query param to every static asset URL. Without this, a
+# browser can end up with a new cached CSS file paired with an old cached
+# JS file across a deploy - e.g. new CSS that hides content until auth.js
+# reveals it, served alongside stale JS that doesn't know to reveal it.
+STATIC_VERSION = uuid.uuid4().hex[:8]
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncIterator[None]:
@@ -29,6 +37,7 @@ app = FastAPI(title="Ask Oufy", lifespan=lifespan)
 
 app.mount("/static", StaticFiles(directory=BASE_DIR / "static"), name="static")
 templates = Jinja2Templates(directory=BASE_DIR / "templates")
+templates.env.globals["static_version"] = STATIC_VERSION
 app.include_router(ask.router)
 app.include_router(library.router)
 if settings.enable_admin_ui:
